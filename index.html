@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeadAdmin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg">
+</head>
+<body>
+
+  <!-- ─── ÉCRAN DE CONNEXION ──────────────────────────────────────────────── -->
+
+  <div id="login-screen">
+    <div class="login-card">
+
+      <div class="login-logo">
+        <div class="login-logo-mark">
+          <div class="logo-square"><i class="ti ti-shield-lock"></i></div>
+          <div class="logo-name">LeadAdmin</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="login-user">Identifiant</label>
+        <input type="text" id="login-user" placeholder="identifiant" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="login-pass">Mot de passe</label>
+        <div class="input-wrapper">
+            <input type="password" id="login-pass" placeholder="••••••••">
+            <button type="button" onclick="togglePassword()" id="toggle-pass">
+            <i class="ti ti-eye" id="eye-icon"></i>
+            </button>
+        </div>
+      </div>
+
+      <button class="btn-login" onclick="doLogin()">Se connecter</button>
+      <div class="login-error" id="login-error">Identifiant ou mot de passe incorrect.</div>
+
+    </div>
+  </div>
+
+  <!-- ─── APPLICATION ─────────────────────────────────────────────────────── -->
+
+  <div id="app-screen">
+    <div class="app">
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-top">
+          <div class="sidebar-brand">
+            <div class="brand-icon"><i class="ti ti-shield-lock"></i></div>
+            <div class="brand-name">LeadAdmin</div>
+          </div>
+          <div class="session-card">
+            <div class="session-role"  id="session-role-label">Rôle</div>
+            <div class="session-name"  id="session-name-label">Nom</div>
+            <div class="session-scope" id="session-scope-label">Périmètre</div>
+          </div>
+        </div>
+
+        <div class="nav-section">Navigation</div>
+        <div class="nav-item active" onclick="showPage('dashboard', this)">
+          <i class="ti ti-layout-dashboard"></i> Tableau de bord
+        </div>
+        <div class="nav-item" onclick="showPage('inventaire', this)">
+          <i class="ti ti-table"></i> Inventaire
+        </div>
+        <div class="nav-item" id="nav-add" onclick="showPage('ajouter', this)">
+          <i class="ti ti-plus"></i> Ajouter
+        </div>
+
+        <div class="nav-section">Export</div>
+        <div class="nav-item" onclick="exportCSV()">
+          <i class="ti ti-download"></i> Export CSV
+        </div>
+
+        <div class="sidebar-footer">
+          <button class="logout-btn" onclick="doLogout()">
+            <i class="ti ti-logout" style="font-size:14px"></i> Déconnexion
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenu principal -->
+      <div class="main">
+
+        <!-- Page : Tableau de bord -->
+        <div class="page active" id="page-dashboard">
+          <div class="topbar">
+            <div class="page-title">Vue d'ensemble</div>
+            <div class="topbar-right">
+              <button class="btn" onclick="exportCSV()">
+                <i class="ti ti-download"></i> Export CSV
+              </button>
+              <button class="btn btn-primary" id="dash-add-btn" onclick="showPage('ajouter', document.getElementById('nav-add'))">
+                <i class="ti ti-plus"></i> Ajouter
+              </button>
+            </div>
+          </div>
+
+          <div class="metrics" id="metrics-row"></div>
+
+          <div class="charts-row">
+            <div class="chart-card">
+              <div class="chart-title">Par catégorie</div>
+              <div class="bar-chart" id="bar-chart"></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">Par niveau d'accès</div>
+              <div class="donut-wrap">
+                <svg id="donut-svg" viewBox="0 0 90 90" width="90" height="90" style="flex-shrink:0"></svg>
+                <div class="donut-legend" id="donut-legend"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="alerts-card">
+            <div class="chart-title">À surveiller</div>
+            <div id="alerts-list"></div>
+          </div>
+        </div>
+
+        <!-- Page : Inventaire -->
+        <div class="page" id="page-inventaire">
+          <div class="topbar">
+            <div class="page-title">Inventaire</div>
+            <div class="topbar-right">
+              <button class="btn" onclick="exportCSV()">
+                <i class="ti ti-download"></i> Export CSV
+              </button>
+              <button class="btn btn-primary" id="inv-add-btn" onclick="showPage('ajouter', document.getElementById('nav-add'))">
+                <i class="ti ti-plus"></i> Ajouter
+              </button>
+            </div>
+          </div>
+
+          <div class="filters">
+            <input class="search-input" type="text" id="search-input" placeholder="Rechercher une ressource..." oninput="renderTable()">
+            <select class="filter-select" id="f-cat" onchange="renderTable()">
+              <option value="">Toutes catégories</option>
+              <option>Compte en ligne</option>
+              <option>Logiciel</option>
+              <option>Licence</option>
+              <option>Abonnement</option>
+            </select>
+            <select class="filter-select" id="f-statut" onchange="renderTable()">
+                <option value="">Tous statuts</option>
+                <option>Actif</option>
+                <option>Expire bientôt</option>
+                <option>Inactif</option>
+                <option>Expiré</option>
+            </select>
+            <select class="filter-select" id="f-ctx" onchange="renderTable()">
+                <option value="">Tous contextes</option>
+                <option>NAALI</option>
+                <option>Insan</option>
+                <option>Perso</option>
+                <option>Les deux</option>
+                <option>Tous</option>
+                </select>
+            <select class="filter-select" id="f-acces" onchange="renderTable()">
+              <option value="">Tous accès</option>
+              <option>Lecture seule</option>
+              <option>Utilisateur</option>
+              <option>Contributeur</option>
+              <option>Admin</option>
+            </select>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="col-nom">Nom</th>
+                  <th class="col-cat">Catégorie</th>
+                  <th class="col-ctx">Contexte</th>
+                  <th class="col-acces">Niveau d'accès</th>
+                  <th class="col-statut">Statut</th>
+                  <th class="col-url">URL</th>
+                  <th class="col-actions"></th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Page : Ajouter -->
+        <div class="page" id="page-ajouter">
+          <div class="topbar">
+            <div class="page-title">Nouvelle ressource</div>
+          </div>
+
+          <div class="form-msg" id="form-msg"></div>
+
+          <div class="form-card">
+            <div class="form-grid">
+              <div class="form-group-inner">
+                <label for="f-nom">Nom *</label>
+                <input type="text" id="f-nom" placeholder="ex. Slack NAALI">
+              </div>
+              <div class="form-group-inner">
+                <label for="f-cat-add">Catégorie *</label>
+                <select id="f-cat-add">
+                  <option value="">Choisir...</option>
+                  <option>Compte en ligne</option>
+                  <option>Logiciel</option>
+                  <option>Licence</option>
+                  <option>Abonnement</option>
+                </select>
+              </div>
+              <div class="form-group-inner">
+                <label for="f-ctx-add">Contexte *</label>
+                <select id="f-ctx-add">
+                  <option value="">Choisir...</option>
+                  <option>NAALI</option>
+                  <option>Insan</option>
+                  <option>Perso</option>
+                  <option>Les deux</option>
+                  <option>Tous</option>
+                </select>
+              </div>
+              <div class="form-group-inner">
+                <label for="f-acces-add">Niveau d'accès *</label>
+                <select id="f-acces-add">
+                  <option value="">Choisir...</option>
+                  <option>Lecture seule</option>
+                  <option>Utilisateur</option>
+                  <option>Contributeur</option>
+                  <option>Admin</option>
+                </select>
+              </div>
+              <div class="form-group-inner">
+                <label for="f-statut-add">Statut *</label>
+                <select id="f-statut-add">
+                  <option value="">Choisir...</option>
+                  <option>Actif</option>
+                  <option>Inactif</option>
+                  <option>Expiré</option>
+                </select>
+              </div>
+              <div class="form-group-inner">
+                <label for="f-url-add">URL</label>
+                <input type="text" id="f-url-add" placeholder="https://...">
+              </div>
+              <div class="form-group-inner">
+                <label for="f-exp-add">Date d'expiration</label>
+                <input type="date" id="f-exp-add">
+              </div>
+              <div class="form-group-inner form-full">
+                <label for="f-note-add">Note</label>
+                <textarea id="f-note-add" placeholder="Contexte d'utilisation, remarques..."></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn" onclick="showPage('inventaire', document.querySelectorAll('.nav-item')[1])">Annuler</button>
+              <button class="btn btn-primary" onclick="addResource()">
+                <i class="ti ti-check"></i> Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODAL DÉTAIL ─────────────────────────────────────────────────────── -->
+
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">Détail</div>
+        <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
